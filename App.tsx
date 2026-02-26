@@ -28,6 +28,7 @@ const App: React.FC = () => {
   });
 
   const processedActionIds = useRef<Set<string>>(new Set());
+  const lastSyncTime = useRef<number>(0);
 
   useEffect(() => {
     if (role === 'HOST' && isRoomEntered && gameState.phase !== 'LOBBY' && gameState.phase !== 'END' && gameState.phase !== 'SETUP') {
@@ -61,16 +62,25 @@ const App: React.FC = () => {
         });
         return () => stop();
       } else {
-        // 교사: 액션만 처리하고 상태는 직접 업데이트
+        // 교사: 상태와 액션 모두 폴링
+        const stopState = syncService.pollGameState(gameState.roomId, (newState) => {
+          // 최근에 액션 처리했으면 2초 대기
+          if (Date.now() - lastSyncTime.current < 2000) return;
+          setGameState(newState);
+        });
         const stopActions = syncService.pollActions(gameState.roomId, (actions) => {
           actions.forEach(action => {
             if (!processedActionIds.current.has(action.id)) {
               processedActionIds.current.add(action.id);
+              lastSyncTime.current = Date.now();
               handleAction(action);
             }
           });
         });
-        return () => stopActions();
+        return () => {
+          stopState();
+          stopActions();
+        };
       }
     }
   }, [isRoomEntered, role, gameState.roomId, nicknameInput, myCountryId]);
