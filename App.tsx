@@ -64,8 +64,8 @@ const App: React.FC = () => {
       } else {
         // 교사: 상태와 액션 모두 폴링
         const stopState = syncService.pollGameState(gameState.roomId, (newState) => {
-          // 최근에 액션 처리했으면 2초 대기
-          if (Date.now() - lastSyncTime.current < 2000) return;
+          // 최근에 액션 처리했으면 1초 대기
+          if (Date.now() - lastSyncTime.current < 1000) return;
           setGameState(newState);
         });
         const stopActions = syncService.pollActions(gameState.roomId, (actions) => {

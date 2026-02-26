@@ -39,7 +39,7 @@ export const syncGameState = async (state: GameState) => {
   }
 };
 
-// 게임 상태 폴링 (학생용) - 더 빠르게 업데이트 확인
+// 게임 상태 폴링 (더 빠른 업데이트)
 export const pollGameState = (roomId: string, callback: (state: GameState) => void) => {
   if (!roomId) return () => {};
   const key = encodeURIComponent(`${roomId}_state`);
@@ -51,7 +51,7 @@ export const pollGameState = (roomId: string, callback: (state: GameState) => vo
         if (data && data.phase) callback(data);
       }
     } catch (e) {}
-  }, 1000); 
+  }, 500); // 0.5초마다 체크
   return () => clearInterval(interval);
 };
 
@@ -105,7 +105,7 @@ export const pollActions = (roomId: string, callback: (actions: any[]) => void) 
         if (Array.isArray(actions)) callback(actions);
       }
     } catch (e) {}
-  }, 1200); 
+  }, 500); // 0.5초마다 체크
   return () => clearInterval(interval);
 };
 
