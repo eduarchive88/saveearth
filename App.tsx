@@ -61,7 +61,11 @@ const App: React.FC = () => {
         });
         return () => stop();
       } else {
-        const stop = syncService.pollActions(gameState.roomId, (actions) => {
+        // 교사는 액션 폴링과 동시에 상태 동기화도 필요 (LOBBY 화면에서 학생 접속 확인)
+        const stopState = syncService.pollGameState(gameState.roomId, (newState) => {
+          setGameState(newState);
+        });
+        const stopActions = syncService.pollActions(gameState.roomId, (actions) => {
           actions.forEach(action => {
             if (!processedActionIds.current.has(action.id)) {
               processedActionIds.current.add(action.id);
@@ -69,7 +73,10 @@ const App: React.FC = () => {
             }
           });
         });
-        return () => stop();
+        return () => {
+          stopState();
+          stopActions();
+        };
       }
     }
   }, [isRoomEntered, role, gameState.roomId, nicknameInput, myCountryId]);
