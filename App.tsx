@@ -248,6 +248,19 @@ const App: React.FC = () => {
   // 교사 로비 화면 (학생 접속 대기)
   if (role === 'HOST' && gameState.phase === 'LOBBY') {
     const joinedCount = Object.values(gameState.countries).filter((c: Country) => c.isJoined).length;
+    
+    const refreshState = async () => {
+      try {
+        const res = await fetch(`https://kvdb.io/cw_v4_prod_2024_stable/${encodeURIComponent(gameState.roomId + '_state')}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.phase) setGameState(data);
+        }
+      } catch (e) {
+        console.error('Refresh failed', e);
+      }
+    };
+    
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 p-8">
         <div className="max-w-7xl mx-auto space-y-8">
@@ -255,6 +268,12 @@ const App: React.FC = () => {
             <h1 className="text-8xl font-black text-white">대기실</h1>
             <div className="text-4xl font-black text-emerald-400">방 코드: {gameState.roomId}</div>
             <div className="text-2xl text-white/60">학생 접속 대기 중... ({joinedCount}/9)</div>
+            <button
+              onClick={refreshState}
+              className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black text-lg"
+            >
+              🔄 새로고침
+            </button>
           </div>
 
           <div className="glass p-10 rounded-3xl">
