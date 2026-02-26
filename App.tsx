@@ -231,6 +231,63 @@ const App: React.FC = () => {
     return <CountrySelection countries={gameState.countries} onSelect={handleCountrySelect} />;
   }
 
+  // 교사 로비 화면 (학생 접속 대기)
+  if (role === 'HOST' && gameState.phase === 'LOBBY') {
+    const joinedCount = Object.values(gameState.countries).filter((c: Country) => c.isJoined).length;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="text-center space-y-4">
+            <h1 className="text-8xl font-black text-white">대기실</h1>
+            <div className="text-4xl font-black text-emerald-400">방 코드: {gameState.roomId}</div>
+            <div className="text-2xl text-white/60">학생 접속 대기 중... ({joinedCount}/9)</div>
+          </div>
+
+          <div className="glass p-10 rounded-3xl">
+            <h2 className="text-3xl font-black mb-6">참가 국가 현황</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Object.values(gameState.countries).map((c: Country) => (
+                <motion.div
+                  key={c.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`p-6 rounded-2xl border-2 ${
+                    c.isJoined 
+                      ? 'bg-emerald-600/20 border-emerald-500' 
+                      : 'bg-white/5 border-white/10 opacity-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-4 mb-3">
+                    <span className="text-6xl">{c.flag}</span>
+                    <div>
+                      <div className="text-xl font-black">{c.name}</div>
+                      <div className="text-sm text-white/60">GP: {c.gp}</div>
+                    </div>
+                  </div>
+                  {c.isJoined ? (
+                    <div className="text-lg font-black text-emerald-400">✓ {c.nickname}</div>
+                  ) : (
+                    <div className="text-sm text-white/40">대기 중...</div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={handleNextPhase}
+              disabled={joinedCount === 0}
+              className="px-20 py-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-3xl font-black text-3xl"
+            >
+              게임 시작 ({joinedCount}명 참가)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 ${gameState.temperature >= 19 ? 'animate-crisis' : ''}`}>
       <div className="p-8">
