@@ -61,10 +61,7 @@ const App: React.FC = () => {
         });
         return () => stop();
       } else {
-        // 교사는 액션 폴링과 동시에 상태 동기화도 필요 (LOBBY 화면에서 학생 접속 확인)
-        const stopState = syncService.pollGameState(gameState.roomId, (newState) => {
-          setGameState(newState);
-        });
+        // 교사: 액션만 처리하고 상태는 직접 업데이트
         const stopActions = syncService.pollActions(gameState.roomId, (actions) => {
           actions.forEach(action => {
             if (!processedActionIds.current.has(action.id)) {
@@ -73,10 +70,7 @@ const App: React.FC = () => {
             }
           });
         });
-        return () => {
-          stopState();
-          stopActions();
-        };
+        return () => stopActions();
       }
     }
   }, [isRoomEntered, role, gameState.roomId, nicknameInput, myCountryId]);
@@ -93,10 +87,12 @@ const App: React.FC = () => {
             next.countries[cid].isJoined = true;
             next.countries[cid].nickname = action.nickname;
             next.logs = [`🚩 ${next.countries[cid].flag} ${action.nickname} 참가`, ...next.logs];
+            syncService.syncGameState(next); // 즉시 동기화
           }
           break;
         case 'SELECT_DEVELOPMENT':
           next.countries[cid].lastChoice = action.choice;
+          syncService.syncGameState(next);
           break;
         case 'QUIZ_RESULT':
           next.countries[cid].isCorrect = action.correct;
@@ -109,6 +105,7 @@ const App: React.FC = () => {
               next.logs = [`🇺🇸 미국 CCS 기술 발동 → 기온 -0.5°C`, ...next.logs];
             }
           }
+          syncService.syncGameState(next);
           break;
         case 'RPS_CHOICE':
           if (cid === next.rpsTargetA) next.rpsChoiceA = action.choice;
@@ -118,9 +115,9 @@ const App: React.FC = () => {
             next.rpsChoiceA = null;
             next.rpsChoiceB = null;
           }
+          syncService.syncGameState(next);
           break;
       }
-      syncService.syncGameState(next);
       return next;
     });
   };
